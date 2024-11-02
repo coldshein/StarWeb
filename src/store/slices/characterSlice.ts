@@ -34,10 +34,11 @@ const initialState: StateType = {
 
 export const getAllCharacters = createAsyncThunk<
   Response<Character[]>,
-  number
+  number,
+  { rejectValue: KnownError }
 >(
   "characters/getAllCharacters",
-  async (page, {rejectWithValue}) => {
+  async (page, { rejectWithValue }) => {
     try {
       const response = await client.get(`/people/?page=${page}`);
       return response.data;
@@ -80,14 +81,14 @@ const characterSlice = createSlice({
       .addCase(
         getAllCharacters.fulfilled,
         (state, action: PayloadAction<Response<Character[]>>) => {
-          state.characters.items = [...state.characters.items, ...action.payload.results]
+          state.characters.items = [...state.characters.items, ...action.payload.results];
           state.characters.isError = undefined;
           state.characters.isLoading = false;
           state.characters.next = action.payload.next;
         }
       )
-      .addCase(getAllCharacters.rejected, (state) => {
-        state.characters.isError = 'sas'
+      .addCase(getAllCharacters.rejected, (state, action: PayloadAction<KnownError | undefined>) => {
+        state.characters.isError = action.payload?.message;
         state.characters.isLoading = false;
         state.characters.items = [];
       })
